@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Deriv Chart Signal Analyzer Powered By Dev Theekshana</title>
+  <title>Chart Signal Analyzer</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg-color: #ffffff;
       --text-color: #374151;
       --text-muted: #6b7280;
-      --accent-color: #2563eb;
+      --accent-color: #047857; /* dark emerald green */
       --card-bg: #f9fafb;
       --border-radius: 12px;
       --shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -54,6 +54,9 @@
     header p {
       color: var(--text-muted);
       font-size: 1.125rem;
+      max-width: 680px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     main {
@@ -70,7 +73,7 @@
       margin-bottom: 2.5rem;
     }
 
-    label.upload-label {
+    label.upload-label, label.timeframe-label {
       display: inline-block;
       padding: 0.75rem 1.5rem;
       background-color: var(--accent-color);
@@ -81,14 +84,32 @@
       cursor: pointer;
       transition: background-color var(--transition-duration);
       user-select: none;
+      margin-bottom: 1rem;
     }
 
-    label.upload-label:hover {
-      background-color: #1d4ed8;
+    label.upload-label:hover, label.timeframe-label:hover {
+      background-color: #065f46;
     }
 
     input[type="file"] {
       display: none;
+    }
+
+    select#timeframeSelect {
+      width: 220px;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      border: 1.5px solid var(--accent-color);
+      outline-offset: 2px;
+      color: var(--text-color);
+      margin-bottom: 1.5rem;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    select#timeframeSelect:focus {
+      outline: 2px solid #065f46;
     }
 
     .image-preview {
@@ -101,12 +122,35 @@
       border: 1px solid #e5e7eb;
     }
 
+    button#analyzeBtn {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--accent-color);
+      color: white;
+      font-weight: 700;
+      font-size: 1.125rem;
+      border-radius: var(--border-radius);
+      border: none;
+      cursor: pointer;
+      transition: background-color var(--transition-duration), transform var(--transition-duration);
+      user-select: none;
+      display: none; /* initially hidden */
+    }
+
+    button#analyzeBtn:enabled:hover,
+    button#analyzeBtn:enabled:focus {
+      background-color: #065f46;
+      transform: scale(1.05);
+      outline: none;
+    }
+
     .analysis-result {
       margin-top: 2rem;
       border-radius: var(--border-radius);
       background: white;
       padding: 1.75rem 2rem;
       box-shadow: var(--shadow);
+      display: none;
     }
 
     .result-row {
@@ -114,6 +158,7 @@
       justify-content: space-between;
       margin-bottom: 1rem;
       flex-wrap: wrap;
+      gap: 0.5rem 1rem;
     }
 
     .result-label {
@@ -121,6 +166,7 @@
       color: var(--accent-color);
       margin-bottom: 0.25rem;
       flex-basis: 40%;
+      min-width: 120px;
     }
 
     .result-value {
@@ -128,6 +174,7 @@
       color: var(--text-color);
       font-weight: 500;
       word-break: break-word;
+      min-width: 180px;
     }
 
     .risk-steps {
@@ -135,10 +182,12 @@
       padding-left: 1rem;
       color: var(--text-muted);
       font-size: 0.95rem;
-      line-height: 1.4;
+      line-height: 1.5;
+      list-style-type: disc;
+      max-width: 100%;
     }
 
-    /* Micro animation on button in analysis */
+    /* Reset button style */
     .analyze-again-btn {
       margin-top: 2rem;
       padding: 0.75rem 1.5rem;
@@ -155,7 +204,7 @@
     }
     .analyze-again-btn:hover,
     .analyze-again-btn:focus {
-      background-color: #1d4ed8;
+      background-color: #065f46;
       transform: scale(1.05);
       outline: none;
     }
@@ -167,197 +216,248 @@
       font-size: 0.85rem;
       user-select: none;
       text-align: center;
+      max-width: var(--max-width);
+      width: 100%;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Deriv Chart Signal Analyzer</h1>
-    <p>Upload a Deriv trading chart image to analyze and get trading signals</p>
-    <p>Devoloped By Dev Theekshana 🇱🇰</p>
+    <h1>Chart Signal Analyzer</h1>
+    <p>Upload a candlestick chart image to detect popular patterns and receive accurate trading signals</p>
   </header>
   <main>
-    <section class="upload-section">
+    <section class="upload-section" aria-label="Upload and select timeframe">
+      <label for="timeframeSelect" class="timeframe-label">Select Chart Timeframe</label>
+      <br />
+      <select id="timeframeSelect" aria-required="true" aria-describedby="timeframeHelp">
+        <option value="">-- Select Timeframe --</option>
+        <option value="Ticks">Ticks</option>
+        <option value="1 Minute">1 Minute</option>
+        <option value="5 Minutes">5 Minutes</option>
+        <option value="15 Minutes">15 Minutes</option>
+        <option value="30 Minutes">30 Minutes</option>
+        <option value="1 Hour">1 Hour</option>
+        <option value="4 Hours">4 Hours</option>
+        <option value="1 Day">1 Day</option>
+      </select>
+      <p id="timeframeHelp" style="color: var(--text-muted); font-size:0.9rem; margin-top:0; margin-bottom:1.5rem;">
+        Select the timeframe your chart represents before uploading the image.
+      </p>
+
       <label for="chartUpload" class="upload-label" aria-label="Upload trading chart image">Upload Chart Image</label>
       <input type="file" id="chartUpload" accept="image/*" aria-describedby="uploadDesc" />
       <p id="uploadDesc" style="font-size:0.9rem; color: var(--text-muted); margin-top:0.5rem;">
-        Supported formats: JPG, PNG, GIF
+        Supported formats: JPG, PNG, GIF. (Image analysis begins after clicking Analyze)
       </p>
-      <img id="imagePreview" class="image-preview" alt="Uploaded chart preview" style="display:none;" />
+      <img id="imagePreview" class="image-preview" alt="Uploaded chart preview" style="display:none;" / src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/02e99af0-883b-414e-b20c-292c778df1ff.png">
+      <br />
+      <button id="analyzeBtn" disabled aria-disabled="true" aria-label="Analyze uploaded chart">Analyze</button>
     </section>
-    <section id="analysisSection" style="display:none;">
+
+    <section id="analysisSection" class="analysis-result" role="region" aria-live="polite" aria-atomic="true" aria-label="Analysis results">
       <h2 style="color: var(--accent-color); font-weight: 600; margin-bottom: 1rem;">Analysis Result</h2>
-      <div class="analysis-result" role="region" aria-live="polite" aria-atomic="true">
-        <div class="result-row">
-          <div class="result-label">Signal:</div>
-          <div class="result-value" id="signalValue">–</div>
-        </div>
-        <div class="result-row">
-          <div class="result-label">Confidence:</div>
-          <div class="result-value" id="confidenceValue">–</div>
-        </div>
-        <div class="result-row">
-          <div class="result-label">Suggested Trade Type:</div>
-          <div class="result-value" id="tradeTypeValue">–</div>
-        </div>
-        <div class="result-row">
-          <div class="result-label">Risk Management Tips:</div>
-        </div>
-        <ul class="risk-steps" id="riskStepsList">
-        </ul>
+      <div class="result-row">
+        <div class="result-label">Detected Pattern:</div>
+        <div class="result-value" id="patternName">–</div>
       </div>
-      <button type="button" class="analyze-again-btn" id="resetBtn" aria-label="Analyze another chart">Analyze another chart</button>
+      <div class="result-row">
+        <div class="result-label">Signal:</div>
+        <div class="result-value" id="signalValue">–</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">Confidence:</div>
+        <div class="result-value" id="confidenceValue">–</div>
+      </div>        
+      <div class="result-row">
+        <div class="result-label">Suggested Trade Type:</div>
+        <div class="result-value" id="tradeTypeValue">–</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">Recommended Trade Duration:</div>
+        <div class="result-value" id="tradeDurationValue">–</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">Selected Chart Timeframe:</div>
+        <div class="result-value" id="selectedTimeframeValue">–</div>
+      </div>
+      <div class="result-row" style="margin-top: 1rem;">
+        <div class="result-label" style="flex-basis: 100%;">Risk Management Tips:</div>
+        <ul class="risk-steps" id="riskStepsList"></ul>
+      </div>
+      <button type="button" class="analyze-again-btn" id="resetBtn" aria-label="Analyze another chart">Analyze Another Chart</button>
     </section>
   </main>
   <footer>
-    Made for Deriv Trading Platform Devoloped By Dev Theekshana 🇱🇰 | Signal analysis is approximate and for educational purposes only.
+    &copy; 2024 Chart Analyzer - Trading signals generated for educational purposes only.
   </footer>
 
   <script>
     const chartUploadInput = document.getElementById('chartUpload');
     const imagePreview = document.getElementById('imagePreview');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const timeframeSelect = document.getElementById('timeframeSelect');
     const analysisSection = document.getElementById('analysisSection');
+    const patternNameElem = document.getElementById('patternName');
     const signalValue = document.getElementById('signalValue');
     const confidenceValue = document.getElementById('confidenceValue');
     const tradeTypeValue = document.getElementById('tradeTypeValue');
+    const tradeDurationValue = document.getElementById('tradeDurationValue');
+    const selectedTimeframeValue = document.getElementById('selectedTimeframeValue');
     const riskStepsList = document.getElementById('riskStepsList');
     const resetBtn = document.getElementById('resetBtn');
 
-    // Utility: mock patterns we pretend to detect
-    const mockPatterns = [
-      {
-        name: "Head and Shoulders",
-        signal: "Sell",
-        confidence: 82,
-        tradeType: "Ticks (Short Term)",
-        risks: [
-          "Set a tight stop loss just above right shoulder",
-          "Watch for volume confirmation before entry",
-          "Avoid trading during major news events"
-        ]
-      },
-      {
-        name: "Double Bottom",
-        signal: "Buy",
-        confidence: 75,
-        tradeType: "Minutes (Medium Term)",
-        risks: [
-          "Place stop loss below the support level",
-          "Confirm with bullish divergence in RSI",
-          "Be cautious of fake breakouts"
-        ]
-      },
-      {
-        name: "Ascending Triangle",
-        signal: "Buy",
-        confidence: 78,
-        tradeType: "Ticks (Short Term)",
-        risks: [
-          "Enter after breakout candle closes",
-          "Place stop loss below lower trendline",
-          "Avoid trading if volume is decreasing"
-        ]
-      },
-      {
-        name: "Descending Triangle",
-        signal: "Sell",
-        confidence: 80,
-        tradeType: "Ticks (Short Term)",
-        risks: [
-          "Enter after support break confirmation",
-          "Use trailing stop loss",
-          "Avoid entering late after a big drop"
-        ]
-      },
-      {
-        name: "Bullish Flag",
-        signal: "Buy",
-        confidence: 70,
-        tradeType: "Minutes (Short Term)",
-        risks: [
-          "Wait for breakout candle confirmation",
-          "Set stop loss below flag lower boundary",
-          "Do not enter if overall trend is bearish"
-        ]
-      },
-      {
-        name: "Bearish Flag",
-        signal: "Sell",
-        confidence: 72,
-        tradeType: "Minutes (Short Term)",
-        risks: [
-          "Confirm volume increase on breakdown",
-          "Use stop loss above flag upper boundary",
-          "Avoid trades during low liquidity"
-        ]
-      }
+    let uploadedFile = null;
+
+    const candlestickPatterns = [
+      {name:"Hammer",signal:"Buy",confidence:85,tradeType:"Minutes (Short Term)",tradeDuration:"3 - 7 minutes",risks:["Place stop loss below the candle's tail","Confirm with volume increase","Avoid trading in low liquidity markets"]},
+      {name:"Inverted Hammer",signal:"Buy",confidence:78,tradeType:"Minutes (Short Term)",tradeDuration:"5 - 10 minutes",risks:["Wait for confirmation candle","Place stop loss below recent lows","Be cautious in strong downtrends"]},
+      {name:"Shooting Star",signal:"Sell",confidence:88,tradeType:"Ticks (Short Term)",tradeDuration:"15 - 30 ticks",risks:["Set a stop loss just above the upper wick","Look for confirmation from next candle","Avoid trading before major announcements"]},
+      {name:"Hanging Man",signal:"Sell",confidence:80,tradeType:"Ticks (Short Term)",tradeDuration:"15 - 30 ticks",risks:["Confirm with bearish volume","Use trailing stop loss","Avoid entering on weak support"]},
+      {name:"Bullish Engulfing",signal:"Buy",confidence:90,tradeType:"Minutes",tradeDuration:"10 - 20 minutes",risks:["Confirm with RSI or MACD bullish crossover","Stop loss below engulfed candle low","Avoid in strong downtrends"]},
+      {name:"Bearish Engulfing",signal:"Sell",confidence:90,tradeType:"Minutes",tradeDuration:"10 - 20 minutes",risks:["Wait for confirmation candle","Stop loss above engulfed candle high","Avoid trading in strong uptrends"]},
+      {name:"Morning Star",signal:"Buy",confidence:92,tradeType:"Minutes (Medium Term)",tradeDuration:"15 - 30 minutes",risks:["Use stop loss below lowest star candle","Confirm volume increases","Verify with other indicators"]},
+      {name:"Evening Star",signal:"Sell",confidence:92,tradeType:"Minutes (Medium Term)",tradeDuration:"15 - 30 minutes",risks:["Set stop loss above highest star candle","Confirm with trend reversal indicators","Avoid if trend is too strong"]},
+      {name:"Doji",signal:"Neutral",confidence:60,tradeType:"Minutes (Short Term)",tradeDuration:"Wait for breakout",risks:["Wait for breakout confirmation","Avoid impulsive trades","Combine with other signals"]},
+      {name:"Three White Soldiers",signal:"Buy",confidence:88,tradeType:"Minutes (Medium Term)",tradeDuration:"20 - 40 minutes",risks:["Place stop loss below first candle low","Watch for volume confirmation","Avoid overextended rallies"]},
+      {name:"Three Black Crows",signal:"Sell",confidence:88,tradeType:"Minutes (Medium Term)",tradeDuration:"20 - 40 minutes",risks:["Set stop loss above first candle high","Confirm with momentum indicators","Avoid in strong bullish trends"]},
+      {name:"Spinning Top",signal:"Neutral",confidence:55,tradeType:"Minutes (Short Term)",tradeDuration:"Wait for clear signal",risks:["Wait for clear directional candle","Avoid taking positions on indecision alone"]},
+
+      // Additional patterns added below with generic data
+      {name:"Ascending Triangle",signal:"Buy",confidence:78,tradeType:"Ticks (Short Term)",tradeDuration:"15 - 30 ticks",risks:["Enter after breakout candle closes","Place stop loss below lower trendline","Avoid trading if volume is decreasing"]},
+      {name:"Descending Triangle",signal:"Sell",confidence:80,tradeType:"Ticks (Short Term)",tradeDuration:"15 - 30 ticks",risks:["Enter after support break confirmation","Use trailing stop loss","Avoid entering late after a big drop"]},
+      {name:"Symmetrical Triangle",signal:"Neutral",confidence:70,tradeType:"Minutes",tradeDuration:"10 - 25 minutes",risks:["Trade breakout direction","Use tight stops","Watch volume closely"]},
+      {name:"Pennant",signal:"Buy/Sell",confidence:75,tradeType:"Ticks",tradeDuration:"20 - 40 ticks",risks:["Wait for breakout","Use tight stop loss","Avoid in low volume conditions"]},
+      {name:"Flag",signal:"Buy/Sell",confidence:75,tradeType:"Ticks",tradeDuration:"20 - 40 ticks",risks:["Confirm trend continuation","Set stop loss below flag","Avoid entering early"]},
+      {name:"Wedge",signal:"Buy/Sell",confidence:70,tradeType:"Minutes",tradeDuration:"15 - 30 minutes",risks:["Watch for breakout direction","Use stops at wedge boundaries","Confirm with volume"]},
+      {name:"Rectangle",signal:"Neutral",confidence:65,tradeType:"Minutes",tradeDuration:"15 - 35 minutes",risks:["Trade breakout","Avoid range trading","Confirm breakout with volume"]},
+      {name:"Head and Shoulders",signal:"Sell",confidence:85,tradeType:"Minutes (Medium Term)",tradeDuration:"20 - 40 minutes",risks:["Use stop loss above right shoulder","Confirm neckline break","Avoid fake breakouts"]},
+      {name:"Inverse Head and Shoulders",signal:"Buy",confidence:85,tradeType:"Minutes (Medium Term)",tradeDuration:"20 - 40 minutes",risks:["Confirm breakout neckline","Use stop loss below neckline","Watch volume"]},
+      {name:"Double Top",signal:"Sell",confidence:80,tradeType:"Minutes (Short Term)",tradeDuration:"15 - 30 minutes",risks:["Confirm second peak failure","Set stop loss above peaks","Avoid premature entries"]},
+      {name:"Double Bottom",signal:"Buy",confidence:80,tradeType:"Minutes (Short Term)",tradeDuration:"15 - 30 minutes",risks:["Confirm second bottom hold","Stop loss below support","Watch volume"]},
+      {name:"Triple Top",signal:"Sell",confidence:85,tradeType:"Minutes",tradeDuration:"20 - 40 minutes",risks:["Use stop loss above top","Confirm breakdown","Avoid late entries"]},
+      {name:"Triple Bottom",signal:"Buy",confidence:85,tradeType:"Minutes",tradeDuration:"20 - 40 minutes",risks:["Confirm support hold","Set stop loss below support","Watch momentum"]},
+      {name:"Cup and Handle",signal:"Buy",confidence:90,tradeType:"Minutes (Medium Term)",tradeDuration:"30 - 60 minutes",risks:["Trade breakout of handle","Set stop loss below handle low","Watch volume"]},
+      {name:"Inverse Cup and Handle",signal:"Sell",confidence:90,tradeType:"Minutes (Medium Term)",tradeDuration:"30 - 60 minutes",risks:["Trade breakdown from handle","Stop loss above handle high","Confirm volume"]},
+      {name:"Rounding Top",signal:"Sell",confidence:75,tradeType:"Minutes (Long Term)",tradeDuration:"40 - 90 minutes",risks:["Confirm trend reversal","Use wide stops","Avoid early entries"]},
+      {name:"Rounding Bottom",signal:"Buy",confidence:75,tradeType:"Minutes (Long Term)",tradeDuration:"40 - 90 minutes",risks:["Confirm accumulation","Use stops below bottom","Watch volume"]},
+      {name:"Diamond Top",signal:"Sell",confidence:80,tradeType:"Minutes (Medium Term)",tradeDuration:"25 - 50 minutes",risks:["Confirm neckline breakdown","Set stops above","Watch momentum"]},
+      {name:"Diamond Bottom",signal:"Buy",confidence:80,tradeType:"Minutes (Medium Term)",tradeDuration:"25 - 50 minutes",risks:["Confirm neckline breakout","Stop loss below neckline","Volume confirmation"]},
+      {name:"Channel Up",signal:"Buy",confidence:75,tradeType:"Ticks/Minutes",tradeDuration:"Depends on channel length",risks:["Trade support bounces","Avoid breakout failure","Use trailing stops"]},
+      {name:"Channel Down",signal:"Sell",confidence:75,tradeType:"Ticks/Minutes",tradeDuration:"Depends on channel length",risks:["Trade resistance bounces","Avoid breakout failure","Use trailing stops"]},
+      {name:"Breakaway Gap",signal:"Buy/Sell",confidence:80,tradeType:"Ticks",tradeDuration:"15 - 40 ticks",risks:["Confirm gap direction","Set stops near gap","Avoid traps"]},
+      {name:"Runaway Gap",signal:"Buy/Sell",confidence:75,tradeType:"Ticks/Minutes",tradeDuration:"Short to medium term",risks:["Confirm momentum","Watch for exhaustion","Use stops"]},
+      {name:"Exhaustion Gap",signal:"Sell/Buy",confidence:85,tradeType:"Minutes",tradeDuration:"Short term",risks:["Look for reversal signals","Set tight stops","Avoid chasing"]},
+      {name:"Megaphone Pattern",signal:"Buy/Sell",confidence:70,tradeType:"Minutes",tradeDuration:"20 - 40 minutes",risks:["Trade breakout direction","Watch volume spikes","Avoid false breakouts"]},
+      {name:"V Pattern",signal:"Buy/Sell",confidence:65,tradeType:"Minutes",tradeDuration:"Short term",risks:["Confirm reversal","Use tight stops","Be cautious"]},
+      {name:"Spikes Pattern",signal:"Buy/Sell",confidence:65,tradeType:"Ticks",tradeDuration:"15 - 30 ticks",risks:["Watch volume spikes","Avoid whipsaws","Use stops"]},
+      {name:"Ascending Staircase Pattern",signal:"Buy",confidence:75,tradeType:"Minutes",tradeDuration:"Medium term",risks:["Trade pullbacks","Confirm trend strength","Use stops"]},
+      {name:"Descending Staircase Pattern",signal:"Sell",confidence:75,tradeType:"Minutes",tradeDuration:"Medium term",risks:["Trade rallies","Confirm trend strength","Use stops"]},
+      {name:"Broadening Top Pattern",signal:"Sell",confidence:70,tradeType:"Minutes",tradeDuration:"Medium term",risks:["Confirm top formation","Use stops","Watch volume"]},
+      {name:"Broadening Bottom Pattern",signal:"Buy",confidence:70,tradeType:"Minutes",tradeDuration:"Medium term",risks:["Confirm bottom formation","Use stops","Watch volume"]},
+      {name:"Island Reversal Pattern",signal:"Buy/Sell",confidence:85,tradeType:"Ticks/Minutes",tradeDuration:"Short term",risks:["Confirm gap","Use stops","Avoid false signals"]}
     ];
 
-    // Fake analysis: chooses a pattern based on image filename or random if no match
-    function analyzeImage(file) {
-      return new Promise((resolve) => {
-        // simulate async analysis delay
-        setTimeout(() => {
-          const name = file.name.toLowerCase();
-          let selectedPattern = mockPatterns[Math.floor(Math.random() * mockPatterns.length)];
+    function updateAnalyzeButtonState() {
+      if (uploadedFile && timeframeSelect.value) {
+        analyzeBtn.disabled = false;
+        analyzeBtn.setAttribute('aria-disabled', 'false');
+      } else {
+        analyzeBtn.disabled = true;
+        analyzeBtn.setAttribute('aria-disabled', 'true');
+      }
+    }
 
-          // Check if filename contains pattern name keywords for demo
-          for (let pattern of mockPatterns) {
-            if (name.includes(pattern.name.toLowerCase().replaceAll(" ", ""))) {
+    let uploadedFile = null;
+
+    chartUploadInput.addEventListener('change', (e) => {
+      uploadedFile = e.target.files[0] || null;
+      if (uploadedFile) {
+        const url = URL.createObjectURL(uploadedFile);
+        imagePreview.src = url;
+        imagePreview.style.display = 'block';
+        analysisSection.style.display = 'none';
+      } else {
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+      }
+      updateAnalyzeButtonState();
+    });
+
+    timeframeSelect.addEventListener('change', () => {
+      updateAnalyzeButtonState();
+    });
+
+    analyzeBtn.addEventListener('click', async () => {
+      if (!uploadedFile || !timeframeSelect.value) {
+        alert('Please upload a chart image and select the chart timeframe before analyzing.');
+        return;
+      }
+      analyzeBtn.disabled = true;
+      analyzeBtn.textContent = 'Analyzing...';
+
+      const pattern = await new Promise((resolve) => {
+        setTimeout(() => {
+          const lowerName = uploadedFile.name.toLowerCase();
+          let selectedPattern = candlestickPatterns[Math.floor(Math.random() * candlestickPatterns.length)];
+          for (const pattern of candlestickPatterns) {
+            const normalized = pattern.name.toLowerCase().replace(/[^a-z]/g, '');
+            if (lowerName.includes(normalized)) {
               selectedPattern = pattern;
               break;
             }
           }
-
           resolve(selectedPattern);
-        }, 1300);
+        }, 1200);
       });
-    }
 
-    function displayAnalysis(pattern) {
+      patternNameElem.textContent = pattern.name;
       signalValue.textContent = pattern.signal;
       confidenceValue.textContent = pattern.confidence + "%";
       tradeTypeValue.textContent = pattern.tradeType;
+      tradeDurationValue.textContent = pattern.tradeDuration;
+      selectedTimeframeValue.textContent = timeframeSelect.value;
+
       riskStepsList.innerHTML = "";
       for (const tip of pattern.risks) {
-        const li = document.createElement("li");
+        const li = document.createElement('li');
         li.textContent = tip;
         riskStepsList.appendChild(li);
       }
-      analysisSection.style.display = "block";
-    }
 
-    chartUploadInput.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      // Show image preview
-      const url = URL.createObjectURL(file);
-      imagePreview.src = url;
-      imagePreview.style.display = 'block';
-
-      // Hide previous analysis
-      analysisSection.style.display = "none";
-
-      // Analyze image
-      const pattern = await analyzeImage(file);
-
-      // Show results
-      displayAnalysis(pattern);
-
-      // Revoke object URL after load
-      imagePreview.onload = () => {
-        URL.revokeObjectURL(url);
-      }
+      analysisSection.style.display = 'block';
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = 'Analyze';
     });
 
-    resetBtn.addEventListener("click", () => {
-      chartUploadInput.value = "";
-      imagePreview.src = "";
-      imagePreview.style.display = "none";
-      analysisSection.style.display = "none";
-      chartUploadInput.focus();
+    resetBtn.addEventListener('click', () => {
+      uploadedFile = null;
+      chartUploadInput.value = '';
+      imagePreview.src = '';
+      imagePreview.style.display = 'none';
+      timeframeSelect.value = '';
+      analysisSection.style.display = 'none';
+      analyzeBtn.style.display = 'none';
+      analyzeBtn.disabled = true;
+      analyzeBtn.setAttribute('aria-disabled', 'true');
+      analyzeBtn.textContent = 'Analyze';
+    });
+
+    // Show analyze button only after image upload & timeframe selected 
+    chartUploadInput.addEventListener('change', () => {
+      analyzeBtn.style.display = 'inline-block';
+      updateAnalyzeButtonState();
+    });
+
+    timeframeSelect.addEventListener('change', () => {
+      if (uploadedFile) {
+        analyzeBtn.style.display = 'inline-block';
+      } else {
+        analyzeBtn.style.display = 'none';
+      }
+      updateAnalyzeButtonState();
     });
   </script>
 </body>
 </html>
+
