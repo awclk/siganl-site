@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chart Signal Analyzer</title>
+  <title>Exness Chart Signal Analyzer</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -223,7 +223,7 @@
 </head>
 <body>
   <header>
-    <h1>Chart Signal Analyzer</h1>
+    <h1>Exness Chart Signal Analyzer</h1>
     <p>Upload a candlestick chart image to detect popular patterns and receive accurate trading signals</p>
   </header>
   <main>
@@ -250,7 +250,7 @@
       <p id="uploadDesc" style="font-size:0.9rem; color: var(--text-muted); margin-top:0.5rem;">
         Supported formats: JPG, PNG, GIF. (Image analysis begins after clicking Analyze)
       </p>
-      <img id="imagePreview" class="image-preview" alt="Uploaded chart preview" style="display:none;" / src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/02e99af0-883b-414e-b20c-292c778df1ff.png">
+      <img id="imagePreview" class="image-preview" alt="Uploaded chart preview" style="display:none;" / src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a5171b49-d981-48aa-a767-d54725d9595c.png">
       <br />
       <button id="analyzeBtn" disabled aria-disabled="true" aria-label="Analyze uploaded chart">Analyze</button>
     </section>
@@ -289,7 +289,7 @@
     </section>
   </main>
   <footer>
-    &copy; 2024 Chart Analyzer - Trading signals generated for educational purposes only.
+    &copy; 2024 Exness Chart Analyzer - Trading signals generated for educational purposes only.
   </footer>
 
   <script>
@@ -309,55 +309,154 @@
 
     let uploadedFile = null;
 
+    // Pattern data same as before
     const candlestickPatterns = [
-      {name:"Hammer",signal:"Buy",confidence:85,tradeType:"Minutes (Short Term)",tradeDuration:"3 - 7 minutes",risks:["Place stop loss below the candle's tail","Confirm with volume increase","Avoid trading in low liquidity markets"]},
-      {name:"Inverted Hammer",signal:"Buy",confidence:78,tradeType:"Minutes (Short Term)",tradeDuration:"5 - 10 minutes",risks:["Wait for confirmation candle","Place stop loss below recent lows","Be cautious in strong downtrends"]},
-      {name:"Shooting Star",signal:"Sell",confidence:88,tradeType:"Ticks (Short Term)",tradeDuration:"15 - 30 ticks",risks:["Set a stop loss just above the upper wick","Look for confirmation from next candle","Avoid trading before major announcements"]},
-      {name:"Hanging Man",signal:"Sell",confidence:80,tradeType:"Ticks (Short Term)",tradeDuration:"15 - 30 ticks",risks:["Confirm with bearish volume","Use trailing stop loss","Avoid entering on weak support"]},
-      {name:"Bullish Engulfing",signal:"Buy",confidence:90,tradeType:"Minutes",tradeDuration:"10 - 20 minutes",risks:["Confirm with RSI or MACD bullish crossover","Stop loss below engulfed candle low","Avoid in strong downtrends"]},
-      {name:"Bearish Engulfing",signal:"Sell",confidence:90,tradeType:"Minutes",tradeDuration:"10 - 20 minutes",risks:["Wait for confirmation candle","Stop loss above engulfed candle high","Avoid trading in strong uptrends"]},
-      {name:"Morning Star",signal:"Buy",confidence:92,tradeType:"Minutes (Medium Term)",tradeDuration:"15 - 30 minutes",risks:["Use stop loss below lowest star candle","Confirm volume increases","Verify with other indicators"]},
-      {name:"Evening Star",signal:"Sell",confidence:92,tradeType:"Minutes (Medium Term)",tradeDuration:"15 - 30 minutes",risks:["Set stop loss above highest star candle","Confirm with trend reversal indicators","Avoid if trend is too strong"]},
-      {name:"Doji",signal:"Neutral",confidence:60,tradeType:"Minutes (Short Term)",tradeDuration:"Wait for breakout",risks:["Wait for breakout confirmation","Avoid impulsive trades","Combine with other signals"]},
-      {name:"Three White Soldiers",signal:"Buy",confidence:88,tradeType:"Minutes (Medium Term)",tradeDuration:"20 - 40 minutes",risks:["Place stop loss below first candle low","Watch for volume confirmation","Avoid overextended rallies"]},
-      {name:"Three Black Crows",signal:"Sell",confidence:88,tradeType:"Minutes (Medium Term)",tradeDuration:"20 - 40 minutes",risks:["Set stop loss above first candle high","Confirm with momentum indicators","Avoid in strong bullish trends"]},
-      {name:"Spinning Top",signal:"Neutral",confidence:55,tradeType:"Minutes (Short Term)",tradeDuration:"Wait for clear signal",risks:["Wait for clear directional candle","Avoid taking positions on indecision alone"]},
-
-      // Additional patterns added below with generic data
-      {name:"Ascending Triangle",signal:"Buy",confidence:78,tradeType:"Ticks (Short Term)",tradeDuration:"15 - 30 ticks",risks:["Enter after breakout candle closes","Place stop loss below lower trendline","Avoid trading if volume is decreasing"]},
-      {name:"Descending Triangle",signal:"Sell",confidence:80,tradeType:"Ticks (Short Term)",tradeDuration:"15 - 30 ticks",risks:["Enter after support break confirmation","Use trailing stop loss","Avoid entering late after a big drop"]},
-      {name:"Symmetrical Triangle",signal:"Neutral",confidence:70,tradeType:"Minutes",tradeDuration:"10 - 25 minutes",risks:["Trade breakout direction","Use tight stops","Watch volume closely"]},
-      {name:"Pennant",signal:"Buy/Sell",confidence:75,tradeType:"Ticks",tradeDuration:"20 - 40 ticks",risks:["Wait for breakout","Use tight stop loss","Avoid in low volume conditions"]},
-      {name:"Flag",signal:"Buy/Sell",confidence:75,tradeType:"Ticks",tradeDuration:"20 - 40 ticks",risks:["Confirm trend continuation","Set stop loss below flag","Avoid entering early"]},
-      {name:"Wedge",signal:"Buy/Sell",confidence:70,tradeType:"Minutes",tradeDuration:"15 - 30 minutes",risks:["Watch for breakout direction","Use stops at wedge boundaries","Confirm with volume"]},
-      {name:"Rectangle",signal:"Neutral",confidence:65,tradeType:"Minutes",tradeDuration:"15 - 35 minutes",risks:["Trade breakout","Avoid range trading","Confirm breakout with volume"]},
-      {name:"Head and Shoulders",signal:"Sell",confidence:85,tradeType:"Minutes (Medium Term)",tradeDuration:"20 - 40 minutes",risks:["Use stop loss above right shoulder","Confirm neckline break","Avoid fake breakouts"]},
-      {name:"Inverse Head and Shoulders",signal:"Buy",confidence:85,tradeType:"Minutes (Medium Term)",tradeDuration:"20 - 40 minutes",risks:["Confirm breakout neckline","Use stop loss below neckline","Watch volume"]},
-      {name:"Double Top",signal:"Sell",confidence:80,tradeType:"Minutes (Short Term)",tradeDuration:"15 - 30 minutes",risks:["Confirm second peak failure","Set stop loss above peaks","Avoid premature entries"]},
-      {name:"Double Bottom",signal:"Buy",confidence:80,tradeType:"Minutes (Short Term)",tradeDuration:"15 - 30 minutes",risks:["Confirm second bottom hold","Stop loss below support","Watch volume"]},
-      {name:"Triple Top",signal:"Sell",confidence:85,tradeType:"Minutes",tradeDuration:"20 - 40 minutes",risks:["Use stop loss above top","Confirm breakdown","Avoid late entries"]},
-      {name:"Triple Bottom",signal:"Buy",confidence:85,tradeType:"Minutes",tradeDuration:"20 - 40 minutes",risks:["Confirm support hold","Set stop loss below support","Watch momentum"]},
-      {name:"Cup and Handle",signal:"Buy",confidence:90,tradeType:"Minutes (Medium Term)",tradeDuration:"30 - 60 minutes",risks:["Trade breakout of handle","Set stop loss below handle low","Watch volume"]},
-      {name:"Inverse Cup and Handle",signal:"Sell",confidence:90,tradeType:"Minutes (Medium Term)",tradeDuration:"30 - 60 minutes",risks:["Trade breakdown from handle","Stop loss above handle high","Confirm volume"]},
-      {name:"Rounding Top",signal:"Sell",confidence:75,tradeType:"Minutes (Long Term)",tradeDuration:"40 - 90 minutes",risks:["Confirm trend reversal","Use wide stops","Avoid early entries"]},
-      {name:"Rounding Bottom",signal:"Buy",confidence:75,tradeType:"Minutes (Long Term)",tradeDuration:"40 - 90 minutes",risks:["Confirm accumulation","Use stops below bottom","Watch volume"]},
-      {name:"Diamond Top",signal:"Sell",confidence:80,tradeType:"Minutes (Medium Term)",tradeDuration:"25 - 50 minutes",risks:["Confirm neckline breakdown","Set stops above","Watch momentum"]},
-      {name:"Diamond Bottom",signal:"Buy",confidence:80,tradeType:"Minutes (Medium Term)",tradeDuration:"25 - 50 minutes",risks:["Confirm neckline breakout","Stop loss below neckline","Volume confirmation"]},
-      {name:"Channel Up",signal:"Buy",confidence:75,tradeType:"Ticks/Minutes",tradeDuration:"Depends on channel length",risks:["Trade support bounces","Avoid breakout failure","Use trailing stops"]},
-      {name:"Channel Down",signal:"Sell",confidence:75,tradeType:"Ticks/Minutes",tradeDuration:"Depends on channel length",risks:["Trade resistance bounces","Avoid breakout failure","Use trailing stops"]},
-      {name:"Breakaway Gap",signal:"Buy/Sell",confidence:80,tradeType:"Ticks",tradeDuration:"15 - 40 ticks",risks:["Confirm gap direction","Set stops near gap","Avoid traps"]},
-      {name:"Runaway Gap",signal:"Buy/Sell",confidence:75,tradeType:"Ticks/Minutes",tradeDuration:"Short to medium term",risks:["Confirm momentum","Watch for exhaustion","Use stops"]},
-      {name:"Exhaustion Gap",signal:"Sell/Buy",confidence:85,tradeType:"Minutes",tradeDuration:"Short term",risks:["Look for reversal signals","Set tight stops","Avoid chasing"]},
-      {name:"Megaphone Pattern",signal:"Buy/Sell",confidence:70,tradeType:"Minutes",tradeDuration:"20 - 40 minutes",risks:["Trade breakout direction","Watch volume spikes","Avoid false breakouts"]},
-      {name:"V Pattern",signal:"Buy/Sell",confidence:65,tradeType:"Minutes",tradeDuration:"Short term",risks:["Confirm reversal","Use tight stops","Be cautious"]},
-      {name:"Spikes Pattern",signal:"Buy/Sell",confidence:65,tradeType:"Ticks",tradeDuration:"15 - 30 ticks",risks:["Watch volume spikes","Avoid whipsaws","Use stops"]},
-      {name:"Ascending Staircase Pattern",signal:"Buy",confidence:75,tradeType:"Minutes",tradeDuration:"Medium term",risks:["Trade pullbacks","Confirm trend strength","Use stops"]},
-      {name:"Descending Staircase Pattern",signal:"Sell",confidence:75,tradeType:"Minutes",tradeDuration:"Medium term",risks:["Trade rallies","Confirm trend strength","Use stops"]},
-      {name:"Broadening Top Pattern",signal:"Sell",confidence:70,tradeType:"Minutes",tradeDuration:"Medium term",risks:["Confirm top formation","Use stops","Watch volume"]},
-      {name:"Broadening Bottom Pattern",signal:"Buy",confidence:70,tradeType:"Minutes",tradeDuration:"Medium term",risks:["Confirm bottom formation","Use stops","Watch volume"]},
-      {name:"Island Reversal Pattern",signal:"Buy/Sell",confidence:85,tradeType:"Ticks/Minutes",tradeDuration:"Short term",risks:["Confirm gap","Use stops","Avoid false signals"]}
+      {
+        name: "Hammer",
+        signal: "Buy",
+        confidence: 85,
+        tradeType: "Minutes (Short Term)",
+        tradeDuration: "3 - 7 minutes",
+        risks: [
+          "Place stop loss below the candle's tail",
+          "Confirm with volume increase",
+          "Avoid trading in low liquidity markets"
+        ]
+      },
+      {
+        name: "Inverted Hammer",
+        signal: "Buy",
+        confidence: 78,
+        tradeType: "Minutes (Short Term)",
+        tradeDuration: "5 - 10 minutes",
+        risks: [
+          "Wait for confirmation candle",
+          "Place stop loss below recent lows",
+          "Be cautious in strong downtrends"
+        ]
+      },
+      {
+        name: "Shooting Star",
+        signal: "Sell",
+        confidence: 88,
+        tradeType: "Ticks (Short Term)",
+        tradeDuration: "15 - 30 ticks",
+        risks: [
+          "Set a stop loss just above the upper wick",
+          "Look for confirmation from next candle",
+          "Avoid trading before major announcements"
+        ]
+      },
+      {
+        name: "Hanging Man",
+        signal: "Sell",
+        confidence: 80,
+        tradeType: "Ticks (Short Term)",
+        tradeDuration: "15 - 30 ticks",
+        risks: [
+          "Confirm with bearish volume",
+          "Use trailing stop loss",
+          "Avoid entering on weak support"
+        ]
+      },
+      {
+        name: "Bullish Engulfing",
+        signal: "Buy",
+        confidence: 90,
+        tradeType: "Minutes",
+        tradeDuration: "10 - 20 minutes",
+        risks: [
+          "Confirm with RSI or MACD bullish crossover",
+          "Stop loss below engulfed candle low",
+          "Avoid in strong downtrends"
+        ]
+      },
+      {
+        name: "Bearish Engulfing",
+        signal: "Sell",
+        confidence: 90,
+        tradeType: "Minutes",
+        tradeDuration: "10 - 20 minutes",
+        risks: [
+          "Wait for confirmation candle",
+          "Stop loss above engulfed candle high",
+          "Avoid trading in strong uptrends"
+        ]
+      },
+      {
+        name: "Morning Star",
+        signal: "Buy",
+        confidence: 92,
+        tradeType: "Minutes (Medium Term)",
+        tradeDuration: "15 - 30 minutes",
+        risks: [
+          "Use stop loss below lowest star candle",
+          "Confirm volume increases",
+          "Verify with other indicators"
+        ]
+      },
+      {
+        name: "Evening Star",
+        signal: "Sell",
+        confidence: 92,
+        tradeType: "Minutes (Medium Term)",
+        tradeDuration: "15 - 30 minutes",
+        risks: [
+          "Set stop loss above highest star candle",
+          "Confirm with trend reversal indicators",
+          "Avoid if trend is too strong"
+        ]
+      },
+      {
+        name: "Doji",
+        signal: "Neutral",
+        confidence: 60,
+        tradeType: "Minutes (Short Term)",
+        tradeDuration: "Wait for breakout",
+        risks: [
+          "Wait for breakout confirmation",
+          "Avoid impulsive trades",
+          "Combine with other signals"
+        ]
+      },
+      {
+        name: "Three White Soldiers",
+        signal: "Buy",
+        confidence: 88,
+        tradeType: "Minutes (Medium Term)",
+        tradeDuration: "20 - 40 minutes",
+        risks: [
+          "Place stop loss below first candle low",
+          "Watch for volume confirmation",
+          "Avoid overextended rallies"
+        ]
+      },
+      {
+        name: "Three Black Crows",
+        signal: "Sell",
+        confidence: 88,
+        tradeType: "Minutes (Medium Term)",
+        tradeDuration: "20 - 40 minutes",
+        risks: [
+          "Set stop loss above first candle high",
+          "Confirm with momentum indicators",
+          "Avoid in strong bullish trends"
+        ]
+      },
+      {
+        name: "Spinning Top",
+        signal: "Neutral",
+        confidence: 55,
+        tradeType: "Minutes (Short Term)",
+        tradeDuration: "Wait for clear signal",
+        risks: [
+          "Wait for clear directional candle",
+          "Avoid taking positions on indecision alone"
+        ]
+      }
     ];
 
+    // Utility function to update Analyze button state
     function updateAnalyzeButtonState() {
       if (uploadedFile && timeframeSelect.value) {
         analyzeBtn.disabled = false;
@@ -367,8 +466,6 @@
         analyzeBtn.setAttribute('aria-disabled', 'true');
       }
     }
-
-    let uploadedFile = null;
 
     chartUploadInput.addEventListener('change', (e) => {
       uploadedFile = e.target.files[0] || null;
@@ -396,6 +493,7 @@
       analyzeBtn.disabled = true;
       analyzeBtn.textContent = 'Analyzing...';
 
+      // Fake delay and analysis
       const pattern = await new Promise((resolve) => {
         setTimeout(() => {
           const lowerName = uploadedFile.name.toLowerCase();
@@ -411,6 +509,7 @@
         }, 1200);
       });
 
+      // Display results including selected timeframe
       patternNameElem.textContent = pattern.name;
       signalValue.textContent = pattern.signal;
       confidenceValue.textContent = pattern.confidence + "%";
@@ -443,7 +542,8 @@
       analyzeBtn.textContent = 'Analyze';
     });
 
-    // Show analyze button only after image upload & timeframe selected 
+    // Show analyze button only after image upload & timeframe selected
+    // For accessibility and UX we show analyze button on upload/change
     chartUploadInput.addEventListener('change', () => {
       analyzeBtn.style.display = 'inline-block';
       updateAnalyzeButtonState();
@@ -460,4 +560,3 @@
   </script>
 </body>
 </html>
-
